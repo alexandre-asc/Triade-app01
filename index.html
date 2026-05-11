@@ -1,0 +1,996 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <meta name="apple-mobile-web-app-title" content="Tríade" />
+  <meta name="theme-color" content="#0f0f0f" />
+  <link rel="manifest" href="/manifest.json" />
+  <link rel="apple-touch-startup-image" href="/icons/icon-512.png" />
+  <link rel="apple-touch-icon" href="/icons/icon-192.png" />
+  <title>Tríade Resultados</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --bg: #0f0f0f;
+      --surface: #1a1a1a;
+      --surface2: #242424;
+      --surface3: #2e2e2e;
+      --border: rgba(255,255,255,0.08);
+      --border2: rgba(255,255,255,0.14);
+      --text: #f0ede8;
+      --text2: rgba(240,237,232,0.6);
+      --text3: rgba(240,237,232,0.35);
+      --accent: #d4a853;
+      --accent-dim: rgba(212,168,83,0.15);
+      --accent-dim2: rgba(212,168,83,0.08);
+      --danger: #e05252;
+      --success: #52c07a;
+      --radius: 14px;
+      --radius-sm: 8px;
+      --safe-top: env(safe-area-inset-top, 0px);
+      --safe-bottom: env(safe-area-inset-bottom, 0px);
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+    html, body { height: 100%; background: var(--bg); color: var(--text); font-family: 'DM Sans', sans-serif; overflow: hidden; }
+
+    /* ── APP SHELL ── */
+    #app { display: flex; flex-direction: column; height: 100dvh; }
+    #topbar {
+      padding: calc(var(--safe-top) + 14px) 20px 14px;
+      display: flex; align-items: center; justify-content: space-between;
+      border-bottom: 0.5px solid var(--border); flex-shrink: 0;
+      background: var(--bg);
+    }
+    .logo-row { display: flex; align-items: center; gap: 10px; }
+    .logo-tri { width: 30px; height: 30px; }
+    .logo-tri polygon { fill: none; stroke: var(--accent); stroke-width: 2; stroke-linejoin: round; }
+    .logo-tri line { stroke: var(--accent); stroke-width: 1.6; }
+    .brand { font-family: 'DM Serif Display', serif; font-size: 17px; color: var(--text); letter-spacing: -0.3px; }
+    .brand span { color: var(--accent); }
+
+    /* ── NAV TABS ── */
+    #nav {
+      display: flex; background: var(--bg);
+      border-bottom: 0.5px solid var(--border); flex-shrink: 0;
+    }
+    .nav-tab {
+      flex: 1; padding: 10px 4px; border: none; background: none; color: var(--text3);
+      font-family: 'DM Sans', sans-serif; font-size: 11px; font-weight: 500;
+      display: flex; flex-direction: column; align-items: center; gap: 3px; cursor: pointer;
+      transition: color 0.2s; border-bottom: 2px solid transparent; margin-bottom: -0.5px;
+    }
+    .nav-tab svg { width: 20px; height: 20px; }
+    .nav-tab.active { color: var(--accent); border-bottom-color: var(--accent); }
+
+    /* ── PAGES ── */
+    #pages { flex: 1; overflow: hidden; position: relative; }
+    .page { position: absolute; inset: 0; overflow-y: auto; -webkit-overflow-scrolling: touch; padding: 16px 16px calc(var(--safe-bottom) + 16px); display: none; }
+    .page.active { display: block; }
+
+    /* ── CARDS ── */
+    .card { background: var(--surface); border: 0.5px solid var(--border); border-radius: var(--radius); padding: 14px 16px; margin-bottom: 12px; }
+    .card-title { font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.07em; color: var(--text3); margin-bottom: 10px; }
+
+    /* ── PILL GRID ── */
+    .pill-grid { display: flex; flex-wrap: wrap; gap: 7px; }
+    .pill {
+      padding: 7px 12px; border: 0.5px solid var(--border2); border-radius: 50px;
+      background: none; color: var(--text2); font-family: 'DM Sans', sans-serif;
+      font-size: 12px; font-weight: 500; cursor: pointer; transition: all 0.15s;
+      white-space: nowrap;
+    }
+    .pill.active { background: var(--accent); border-color: var(--accent); color: #0f0f0f; font-weight: 600; }
+    .pill:active { transform: scale(0.96); }
+
+    /* ── INPUTS ── */
+    .inp {
+      width: 100%; padding: 11px 14px; background: var(--surface2); border: 0.5px solid var(--border);
+      border-radius: var(--radius-sm); color: var(--text); font-family: 'DM Sans', sans-serif;
+      font-size: 14px; outline: none; transition: border-color 0.15s;
+    }
+    .inp:focus { border-color: var(--accent); }
+    .inp::placeholder { color: var(--text3); }
+    select.inp { appearance: none; cursor: pointer; }
+    textarea.inp { resize: none; line-height: 1.6; }
+
+    /* ── AUDIO INPUT ROW ── */
+    .audio-row { display: flex; gap: 8px; align-items: flex-end; }
+    .audio-row textarea { flex: 1; }
+    .mic-btn {
+      width: 44px; height: 44px; border-radius: 50%; border: 0.5px solid var(--border2);
+      background: var(--surface2); color: var(--text2); cursor: pointer; display: flex;
+      align-items: center; justify-content: center; flex-shrink: 0; transition: all 0.15s;
+    }
+    .mic-btn svg { width: 18px; height: 18px; }
+    .mic-btn.recording { background: var(--danger); border-color: var(--danger); color: #fff; animation: pulse-rec 1s infinite; }
+    @keyframes pulse-rec { 0%,100% { box-shadow: 0 0 0 0 rgba(224,82,82,0.4); } 50% { box-shadow: 0 0 0 8px rgba(224,82,82,0); } }
+
+    /* ── PRIMARY BUTTON ── */
+    .btn-primary {
+      width: 100%; padding: 14px; background: var(--accent); color: #0f0f0f;
+      border: none; border-radius: var(--radius-sm); font-family: 'DM Sans', sans-serif;
+      font-size: 15px; font-weight: 600; cursor: pointer; transition: opacity 0.15s;
+      display: flex; align-items: center; justify-content: center; gap: 8px;
+    }
+    .btn-primary:active { opacity: 0.8; transform: scale(0.99); }
+    .btn-primary:disabled { opacity: 0.35; }
+    .btn-secondary {
+      padding: 9px 16px; background: var(--surface2); border: 0.5px solid var(--border);
+      border-radius: var(--radius-sm); color: var(--text2); font-family: 'DM Sans', sans-serif;
+      font-size: 13px; font-weight: 500; cursor: pointer; transition: all 0.15s;
+      display: flex; align-items: center; gap: 6px;
+    }
+    .btn-secondary:active { background: var(--surface3); }
+
+    /* ── RESULTADO ── */
+    #resultado-wrap { display: none; margin-top: 4px; }
+    .resultado-card {
+      background: var(--surface); border: 0.5px solid var(--border);
+      border-radius: var(--radius); overflow: hidden;
+    }
+    .resultado-header {
+      padding: 10px 14px; border-bottom: 0.5px solid var(--border);
+      display: flex; align-items: center; justify-content: space-between;
+    }
+    .resultado-label { font-size: 11px; font-weight: 600; color: var(--text3); text-transform: uppercase; letter-spacing: 0.07em; }
+    .resultado-actions { display: flex; gap: 6px; }
+    .icon-btn {
+      width: 32px; height: 32px; border-radius: 8px; border: 0.5px solid var(--border);
+      background: var(--surface2); color: var(--text2); cursor: pointer;
+      display: flex; align-items: center; justify-content: center; transition: all 0.15s;
+    }
+    .icon-btn:active { background: var(--surface3); }
+    .icon-btn svg { width: 15px; height: 15px; }
+    .resultado-text { padding: 14px 16px; font-size: 14px; line-height: 1.75; color: var(--text); white-space: pre-wrap; }
+
+    /* ── AUDIO RESPONSE ── */
+    .audio-response-bar {
+      padding: 10px 14px; border-top: 0.5px solid var(--border);
+      display: flex; align-items: center; gap: 10px;
+    }
+    .play-btn {
+      width: 36px; height: 36px; border-radius: 50%; background: var(--accent);
+      border: none; cursor: pointer; display: flex; align-items: center; justify-content: center;
+      flex-shrink: 0; transition: opacity 0.15s;
+    }
+    .play-btn:active { opacity: 0.8; }
+    .play-btn svg { width: 14px; height: 14px; fill: #0f0f0f; margin-left: 2px; }
+    .waveform { flex: 1; height: 28px; display: flex; align-items: center; gap: 2px; }
+    .wave-bar { flex: 1; border-radius: 2px; background: var(--border2); transition: height 0.3s; }
+    .playing .wave-bar { animation: wave-anim 0.8s ease-in-out infinite; }
+    .wave-bar:nth-child(2n) { animation-delay: 0.1s; }
+    .wave-bar:nth-child(3n) { animation-delay: 0.2s; }
+    .wave-bar:nth-child(4n) { animation-delay: 0.3s; }
+    @keyframes wave-anim { 0%,100% { transform: scaleY(0.4); } 50% { transform: scaleY(1); } }
+
+    /* ── IMAGEM ── */
+    #img-result-wrap { display: none; margin-top: 12px; }
+    .img-card { background: var(--surface); border: 0.5px solid var(--border); border-radius: var(--radius); overflow: hidden; }
+    .img-generated { width: 100%; display: block; border-radius: 0; }
+    .img-actions { padding: 10px 14px; display: flex; gap: 8px; border-top: 0.5px solid var(--border); }
+    .img-prompt-field { display: flex; gap: 8px; align-items: flex-end; }
+
+    /* ── LOADING ── */
+    .loading-row { display: flex; align-items: center; gap: 10px; padding: 14px 16px; }
+    .spin { width: 18px; height: 18px; border: 2px solid var(--border2); border-top-color: var(--accent); border-radius: 50%; animation: spin 0.7s linear infinite; flex-shrink: 0; }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    .loading-text { font-size: 13px; color: var(--text2); }
+
+    /* ── HISTÓRICO ── */
+    .hist-item { background: var(--surface); border: 0.5px solid var(--border); border-radius: var(--radius); padding: 12px 14px; margin-bottom: 10px; cursor: pointer; }
+    .hist-item:active { background: var(--surface2); }
+    .hist-meta { display: flex; align-items: center; gap: 8px; margin-bottom: 6px; }
+    .hist-tag { font-size: 10px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.07em; padding: 3px 8px; border-radius: 50px; background: var(--accent-dim); color: var(--accent); }
+    .hist-time { font-size: 11px; color: var(--text3); }
+    .hist-preview { font-size: 13px; color: var(--text2); line-height: 1.5; overflow: hidden; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; }
+
+    /* ── CONFIG ── */
+    .config-item { display: flex; align-items: center; justify-content: space-between; padding: 14px 0; border-bottom: 0.5px solid var(--border); }
+    .config-item:last-child { border-bottom: none; }
+    .config-label { font-size: 14px; color: var(--text); }
+    .config-sub { font-size: 12px; color: var(--text3); margin-top: 2px; }
+    .toggle { width: 44px; height: 26px; border-radius: 13px; background: var(--surface3); border: none; cursor: pointer; position: relative; transition: background 0.2s; flex-shrink: 0; }
+    .toggle.on { background: var(--accent); }
+    .toggle::after { content: ''; position: absolute; width: 20px; height: 20px; border-radius: 50%; background: #fff; top: 3px; left: 3px; transition: transform 0.2s; }
+    .toggle.on::after { transform: translateX(18px); }
+    .api-key-row { display: flex; gap: 8px; margin-top: 8px; }
+
+    /* ── SECTION DIVIDER ── */
+    .sect { margin-bottom: 16px; }
+    .sect-title { font-size: 13px; font-weight: 600; color: var(--text2); margin-bottom: 10px; display: flex; align-items: center; gap: 6px; }
+    .sect-title svg { width: 14px; height: 14px; color: var(--accent); }
+
+    /* ── TOAST ── */
+    #toast {
+      position: fixed; bottom: calc(var(--safe-bottom) + 80px); left: 50%; transform: translateX(-50%) translateY(20px);
+      background: var(--surface3); color: var(--text); padding: 10px 18px; border-radius: 50px;
+      font-size: 13px; font-weight: 500; opacity: 0; transition: all 0.25s; pointer-events: none;
+      white-space: nowrap; z-index: 999; border: 0.5px solid var(--border2);
+    }
+    #toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+
+    /* ── VARIANTE ── */
+    .variante-toggle { padding: 10px 14px; border-top: 0.5px solid var(--border); }
+    .variante-btn { font-size: 12px; color: var(--accent); background: none; border: none; cursor: pointer; font-family: 'DM Sans', sans-serif; font-weight: 500; padding: 0; }
+    .variante-text { display: none; padding: 10px 14px 14px; font-size: 13px; line-height: 1.7; color: var(--text2); border-top: 0.5px solid var(--border); white-space: pre-wrap; }
+    .variante-text.open { display: block; }
+
+    /* ── IMG CANVAS HIDDEN ── */
+    #img-canvas { display: none; }
+
+    /* scrollbar hidden */
+    .page::-webkit-scrollbar { display: none; }
+  </style>
+</head>
+<body>
+<div id="app">
+  <!-- TOPBAR -->
+  <div id="topbar">
+    <div class="logo-row">
+      <svg class="logo-tri" viewBox="0 0 30 30">
+        <polygon points="15,3 27,24 3,24" />
+        <line x1="15" y1="10" x2="15" y2="19" />
+        <line x1="11" y1="19" x2="19" y2="19" />
+      </svg>
+      <span class="brand">Tríade <span>Resultados</span></span>
+    </div>
+    <div id="status-dot" style="width:8px;height:8px;border-radius:50%;background:var(--success);"></div>
+  </div>
+
+  <!-- NAV -->
+  <div id="nav">
+    <button class="nav-tab active" onclick="goPage('gerar')" id="tab-gerar">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 2l2.4 7.4H22l-6.2 4.5 2.4 7.4L12 17l-6.2 4.3 2.4-7.4L2 9.4h7.6z"/></svg>
+      Gerar
+    </button>
+    <button class="nav-tab" onclick="goPage('imagem')" id="tab-imagem">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="3" width="18" height="18" rx="3"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="M21 15l-5-5L5 21"/></svg>
+      Imagem
+    </button>
+    <button class="nav-tab" onclick="goPage('historico')" id="tab-historico">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 3"/></svg>
+      Histórico
+    </button>
+    <button class="nav-tab" onclick="goPage('config')" id="tab-config">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="3"/><path d="M19.07 4.93a10 10 0 010 14.14M4.93 4.93a10 10 0 000 14.14"/><path d="M12 2v2m0 16v2M2 12h2m16 0h2"/></svg>
+      Config
+    </button>
+  </div>
+
+  <!-- PAGES -->
+  <div id="pages">
+
+    <!-- ── PAGE: GERAR ── -->
+    <div class="page active" id="page-gerar">
+
+      <div class="sect">
+        <div class="sect-title">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><path d="M14 2v6h6M16 13H8M16 17H8M10 9H8"/></svg>
+          Tipo de conteúdo
+        </div>
+        <div class="pill-grid" id="tipo-pills">
+          <button class="pill active" data-v="autoridade">Autoridade</button>
+          <button class="pill" data-v="educativo">Educativo</button>
+          <button class="pill" data-v="venda">Venda</button>
+          <button class="pill" data-v="prova">Prova social</button>
+          <button class="pill" data-v="bastidor">Bastidores</button>
+        </div>
+      </div>
+
+      <div class="sect">
+        <div class="sect-title">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="3" width="20" height="14" rx="2"/><path d="M8 21h8M12 17v4"/></svg>
+          Plataforma
+        </div>
+        <div class="pill-grid" id="plataforma-pills">
+          <button class="pill active" data-v="instagram">Instagram</button>
+          <button class="pill" data-v="stories">Stories</button>
+          <button class="pill" data-v="carrossel">Carrossel</button>
+          <button class="pill" data-v="whatsapp">WhatsApp</button>
+          <button class="pill" data-v="youtube">YouTube</button>
+        </div>
+      </div>
+
+      <div class="sect">
+        <div class="sect-title">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87M16 3.13a4 4 0 010 7.75"/></svg>
+          Público
+        </div>
+        <div class="pill-grid" id="publico-pills">
+          <button class="pill active" data-v="clinicas">Clínicas</button>
+          <button class="pill" data-v="restaurantes">Restaurantes</button>
+          <button class="pill" data-v="lojas">Lojas</button>
+          <button class="pill" data-v="servicos">Serviços</button>
+          <button class="pill" data-v="geral">Geral</button>
+        </div>
+      </div>
+
+      <div class="sect">
+        <div class="sect-title">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="12 2 2 19 22 19"/><line x1="12" y1="9" x2="12" y2="14"/><line x1="9" y1="17" x2="15" y2="17"/></svg>
+          Pilar da metodologia
+        </div>
+        <div class="pill-grid" id="pilar-pills">
+          <button class="pill active" data-v="mentalidade">Mentalidade</button>
+          <button class="pill" data-v="estrategia">Estratégia</button>
+          <button class="pill" data-v="execucao">Execução</button>
+        </div>
+      </div>
+
+      <div class="sect">
+        <div class="sect-title">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/></svg>
+          Tema / gancho (ou dite por voz)
+        </div>
+        <div class="audio-row">
+          <textarea class="inp" id="tema-input" rows="2" placeholder="Ex: como a IA reduziu custos de uma clínica local..."></textarea>
+          <button class="mic-btn" id="mic-btn" onclick="ativarMicrofone()" title="Usar microfone do teclado">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 2a3 3 0 013 3v7a3 3 0 01-6 0V5a3 3 0 013-3z"/><path d="M19 10v1a7 7 0 01-14 0v-1M12 19v3M8 22h8"/></svg>
+          </button>
+        </div>
+        <div style="margin-top:8px;display:flex;gap:8px;align-items:center;">
+          <span style="font-size:11px;color:var(--text3);">Resposta em:</span>
+          <div class="pill-grid" id="resp-mode-pills">
+            <button class="pill active" data-v="texto" style="font-size:11px;padding:5px 10px;">Texto</button>
+            <button class="pill" data-v="audio" style="font-size:11px;padding:5px 10px;">Áudio</button>
+            <button class="pill" data-v="ambos" style="font-size:11px;padding:5px 10px;">Ambos</button>
+          </div>
+        </div>
+      </div>
+
+      <button class="btn-primary" id="gerar-btn" onclick="gerarConteudo()">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M12 2l2.4 7.4H22l-6.2 4.5 2.4 7.4L12 17l-6.2 4.3 2.4-7.4L2 9.4h7.6z"/></svg>
+        Gerar conteúdo
+      </button>
+
+      <div id="resultado-wrap">
+        <div style="height:12px;"></div>
+        <div class="resultado-card">
+          <div class="resultado-header">
+            <span class="resultado-label" id="res-label">Resultado</span>
+            <div class="resultado-actions">
+              <button class="icon-btn" onclick="copiarTexto()" title="Copiar">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/></svg>
+              </button>
+              <button class="icon-btn" onclick="compartilhar()" title="Compartilhar">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 12v8a2 2 0 002 2h12a2 2 0 002-2v-8M16 6l-4-4-4 4M12 2v13"/></svg>
+              </button>
+              <button class="icon-btn" onclick="regerar()" title="Regerar">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M23 4v6h-6M1 20v-6h6"/><path d="M3.51 9a9 9 0 0114.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0020.49 15"/></svg>
+              </button>
+            </div>
+          </div>
+          <div id="res-body">
+            <div class="loading-row" id="res-loading" style="display:none;">
+              <div class="spin"></div>
+              <span class="loading-text" id="loading-msg">Gerando conteúdo...</span>
+            </div>
+            <div class="resultado-text" id="res-text"></div>
+          </div>
+          <div class="audio-response-bar" id="audio-bar" style="display:none;">
+            <button class="play-btn" id="play-btn" onclick="toggleAudio()">
+              <svg viewBox="0 0 24 24"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+            </button>
+            <div class="waveform" id="waveform">
+              <div class="wave-bar" style="height:8px;"></div>
+              <div class="wave-bar" style="height:14px;"></div>
+              <div class="wave-bar" style="height:20px;"></div>
+              <div class="wave-bar" style="height:12px;"></div>
+              <div class="wave-bar" style="height:18px;"></div>
+              <div class="wave-bar" style="height:10px;"></div>
+              <div class="wave-bar" style="height:22px;"></div>
+              <div class="wave-bar" style="height:8px;"></div>
+              <div class="wave-bar" style="height:16px;"></div>
+              <div class="wave-bar" style="height:24px;"></div>
+              <div class="wave-bar" style="height:14px;"></div>
+              <div class="wave-bar" style="height:10px;"></div>
+            </div>
+            <span id="audio-dur" style="font-size:12px;color:var(--text3);min-width:36px;text-align:right;"></span>
+          </div>
+          <div class="variante-toggle" id="variante-section" style="display:none;">
+            <button class="variante-btn" onclick="toggleVariante()">+ Ver variação alternativa</button>
+            <div class="variante-text" id="variante-text"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── PAGE: IMAGEM ── -->
+    <div class="page" id="page-imagem">
+
+      <div class="sect">
+        <div class="sect-title">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="3"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="M21 15l-5-5L5 21"/></svg>
+          Estilo da imagem
+        </div>
+        <div class="pill-grid" id="estilo-pills">
+          <button class="pill active" data-v="post">Post feed</button>
+          <button class="pill" data-v="stories-img">Stories</button>
+          <button class="pill" data-v="capa">Capa carrossel</button>
+          <button class="pill" data-v="banner">Banner</button>
+        </div>
+      </div>
+
+      <div class="sect">
+        <div class="sect-title">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+          Descreva a imagem
+        </div>
+        <div class="audio-row">
+          <textarea class="inp" id="img-prompt" rows="3" placeholder="Ex: empreendedor confiante com gráfico de crescimento, tons escuros, estilo moderno..."></textarea>
+          <button class="mic-btn" onclick="ativarMicrofoneImg()" title="Ditar descrição">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 2a3 3 0 013 3v7a3 3 0 01-6 0V5a3 3 0 013-3z"/><path d="M19 10v1a7 7 0 01-14 0v-1M12 19v3M8 22h8"/></svg>
+          </button>
+        </div>
+        <div style="margin-top:8px;">
+          <label style="font-size:12px;color:var(--text3);">Sugestões rápidas:</label>
+          <div class="pill-grid" style="margin-top:6px;" id="img-sugestoes">
+            <button class="pill" style="font-size:11px;padding:5px 10px;" onclick="usarSugestao(this)" data-v="Empreendedor local confiante e moderno, fundo escuro com elementos geométricos dourados, estilo editorial">Autoridade</button>
+            <button class="pill" style="font-size:11px;padding:5px 10px;" onclick="usarSugestao(this)" data-v="Gráfico de crescimento de negócio com setas ascendentes, paleta escura com dourado, minimalista">Crescimento</button>
+            <button class="pill" style="font-size:11px;padding:5px 10px;" onclick="usarSugestao(this)" data-v="Triângulo estratégico com três pilares: Mentalidade, Estratégia, Execução. Design moderno escuro com detalhes dourados">Tríade</button>
+            <button class="pill" style="font-size:11px;padding:5px 10px;" onclick="usarSugestao(this)" data-v="Interface de IA e tecnologia para negócios locais, tom futurista sóbrio, fundo escuro, elementos digitais sutis">IA Negócios</button>
+          </div>
+        </div>
+      </div>
+
+      <button class="btn-primary" id="gerar-img-btn" onclick="gerarImagem()">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><rect x="3" y="3" width="18" height="18" rx="3"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="M21 15l-5-5L5 21"/></svg>
+        Gerar imagem
+      </button>
+
+      <div id="img-result-wrap">
+        <div style="height:12px;"></div>
+        <div class="img-card">
+          <div class="resultado-header">
+            <span class="resultado-label">Imagem gerada</span>
+            <div class="resultado-actions">
+              <button class="icon-btn" onclick="baixarImagem()" title="Baixar">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4M7 10l5 5 5-5M12 15V3"/></svg>
+              </button>
+              <button class="icon-btn" onclick="compartilharImagem()" title="Compartilhar">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 12v8a2 2 0 002 2h12a2 2 0 002-2v-8M16 6l-4-4-4 4M12 2v13"/></svg>
+              </button>
+            </div>
+          </div>
+          <div id="img-loading" style="display:none;" class="loading-row">
+            <div class="spin"></div>
+            <span class="loading-text">Criando imagem...</span>
+          </div>
+          <canvas id="img-canvas"></canvas>
+          <img id="img-generated" class="img-generated" style="display:none;" alt="Imagem gerada" />
+          <div class="img-actions" id="img-actions" style="display:none;">
+            <button class="btn-secondary" onclick="gerarTextoParaImagem()">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2l2.4 7.4H22l-6.2 4.5 2.4 7.4L12 17l-6.2 4.3 2.4-7.4L2 9.4h7.6z"/></svg>
+              Gerar texto para essa imagem
+            </button>
+            <button class="btn-secondary" onclick="gerarImagem()">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M23 4v6h-6M1 20v-6h6"/><path d="M3.51 9a9 9 0 0114.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0020.49 15"/></svg>
+              Nova variação
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <div style="height:16px;"></div>
+      <div style="padding:14px;background:var(--surface);border:0.5px solid var(--border);border-radius:var(--radius);">
+        <p style="font-size:12px;color:var(--text3);line-height:1.6;">
+          <strong style="color:var(--text2);">Sobre geração de imagens:</strong> Esta versão cria imagens localmente usando canvas + prompts visuais.
+          Para geração com IA real (DALL·E, Stability AI), adicione sua chave de API na aba Config.
+        </p>
+      </div>
+    </div>
+
+    <!-- ── PAGE: HISTÓRICO ── -->
+    <div class="page" id="page-historico">
+      <div class="sect-title" style="margin-bottom:14px;">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:14px;height:14px;color:var(--accent);"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 3"/></svg>
+        Conteúdos gerados
+      </div>
+      <div id="historico-list">
+        <div style="text-align:center;padding:40px 20px;color:var(--text3);font-size:14px;">
+          Nenhum conteúdo gerado ainda.<br>
+          <span style="font-size:12px;">Gere seu primeiro conteúdo na aba Gerar.</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── PAGE: CONFIG ── -->
+    <div class="page" id="page-config">
+      <div class="sect-title" style="margin-bottom:14px;">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:14px;height:14px;color:var(--accent);"><circle cx="12" cy="12" r="3"/><path d="M12 2v2m0 16v2M2 12h2m16 0h2M4.93 4.93l1.41 1.41m11.32 11.32l1.41 1.41M4.93 19.07l1.41-1.41M17.66 6.34l1.41-1.41"/></svg>
+        Configurações
+      </div>
+
+      <div class="card">
+        <div class="card-title">Chave de API Gemini</div>
+        <p style="font-size:12px;color:var(--text3);margin-bottom:10px;">Gratuita em <strong>aistudio.google.com</strong> → "Get API Key" → "Create API key".</p>
+        <div class="api-key-row">
+          <input type="password" class="inp" id="api-key-input" placeholder="AIza..." style="flex:1;" />
+          <button class="btn-secondary" onclick="salvarApiKey()">Salvar</button>
+        </div>
+        <div id="api-status" style="font-size:12px;margin-top:8px;color:var(--text3);"></div>
+      </div>
+
+      <div class="card">
+        <div class="card-title">Preferências</div>
+        <div class="config-item">
+          <div>
+            <div class="config-label">Variação automática</div>
+            <div class="config-sub">Gera uma variação alternativa junto</div>
+          </div>
+          <button class="toggle on" id="tog-variante" onclick="toggleConfig('variante', this)"></button>
+        </div>
+        <div class="config-item">
+          <div>
+            <div class="config-label">Salvar histórico</div>
+            <div class="config-sub">Guarda conteúdos gerados localmente</div>
+          </div>
+          <button class="toggle on" id="tog-hist" onclick="toggleConfig('hist', this)"></button>
+        </div>
+        <div class="config-item">
+          <div>
+            <div class="config-label">Resposta em áudio</div>
+            <div class="config-sub">Lê o conteúdo gerado em voz alta</div>
+          </div>
+          <button class="toggle" id="tog-audio" onclick="toggleConfig('audio', this)"></button>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-title">Sobre o app</div>
+        <p style="font-size:13px;color:var(--text2);line-height:1.7;">
+          <strong>Tríade Resultados</strong> — Gerador de conteúdo estratégico.<br>
+          Fundador: Alexandre Amorim<br>
+          Motor de IA: Google Gemini 2.0 Flash<br>
+          Versão: 1.1.0<br>
+          Região: Itapetinga-BA · Vitória da Conquista-BA
+        </p>
+        <div style="margin-top:14px;">
+          <button class="btn-secondary" onclick="limparHistorico()" style="color:var(--danger);border-color:var(--danger);">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14H6L5 6M10 11v6M14 11v6M9 6V4h6v2"/></svg>
+            Limpar histórico
+          </button>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<div id="toast"></div>
+
+<script>
+// Register Service Worker
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('/sw.js').catch(() => {});
+  });
+}
+
+// ── STATE ──
+const state = {
+  tipo: 'autoridade', plataforma: 'instagram', publico: 'clinicas',
+  pilar: 'mentalidade', respMode: 'texto', imgEstilo: 'post',
+  variante: true, hist: true, audioResp: false,
+  apiKey: '', ultimoTexto: '', ultimaVariante: '',
+  currentAudio: null, audioPlaying: false,
+  historico: []
+};
+
+// ── INIT ──
+window.addEventListener('DOMContentLoaded', () => {
+  const savedKey = localStorage.getItem('triade_api_key') || '';
+  if (savedKey) { state.apiKey = savedKey; document.getElementById('api-key-input').value = savedKey; updateApiStatus(true); }
+  const savedHist = localStorage.getItem('triade_historico');
+  if (savedHist) { try { state.historico = JSON.parse(savedHist); renderHistorico(); } catch(e){} }
+  const prefs = JSON.parse(localStorage.getItem('triade_prefs') || '{}');
+  if (prefs.audioResp !== undefined) { state.audioResp = prefs.audioResp; if (prefs.audioResp) document.getElementById('tog-audio').classList.add('on'); }
+  if (prefs.variante === false) { state.variante = false; document.getElementById('tog-variante').classList.remove('on'); }
+  if (prefs.hist === false) { state.hist = false; document.getElementById('tog-hist').classList.remove('on'); }
+});
+
+// ── NAVIGATION ──
+function goPage(name) {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.nav-tab').forEach(t => t.classList.remove('active'));
+  document.getElementById('page-' + name).classList.add('active');
+  document.getElementById('tab-' + name).classList.add('active');
+  if (name === 'historico') renderHistorico();
+}
+
+// ── PILL SELECTION ──
+function setupPills(groupId, stateKey) {
+  document.getElementById(groupId).querySelectorAll('.pill').forEach(p => {
+    p.addEventListener('click', () => {
+      document.getElementById(groupId).querySelectorAll('.pill').forEach(x => x.classList.remove('active'));
+      p.classList.add('active');
+      state[stateKey] = p.dataset.v;
+    });
+  });
+}
+setupPills('tipo-pills', 'tipo');
+setupPills('plataforma-pills', 'plataforma');
+setupPills('publico-pills', 'publico');
+setupPills('pilar-pills', 'pilar');
+setupPills('resp-mode-pills', 'respMode');
+setupPills('estilo-pills', 'imgEstilo');
+
+// ── MICROFONE (via teclado iOS) ──
+function ativarMicrofone() {
+  const textarea = document.getElementById('tema-input');
+  textarea.focus();
+  textarea.setAttribute('x-webkit-speech', '');
+  showToast('Toque no microfone do teclado para ditar 🎤');
+}
+function ativarMicrofoneImg() {
+  const textarea = document.getElementById('img-prompt');
+  textarea.focus();
+  showToast('Toque no microfone do teclado para ditar 🎤');
+}
+
+// ── API KEY ──
+function salvarApiKey() {
+  const val = document.getElementById('api-key-input').value.trim();
+  if (!val || !val.startsWith('AIza')) { showToast('Chave inválida. Deve começar com AIza'); return; }
+  state.apiKey = val;
+  localStorage.setItem('triade_api_key', val);
+  updateApiStatus(true);
+  showToast('Chave salva com sucesso ✓');
+}
+function updateApiStatus(ok) {
+  const el = document.getElementById('api-status');
+  if (ok) { el.textContent = '✓ Chave configurada e pronta para uso'; el.style.color = 'var(--success)'; }
+  else { el.textContent = '✗ Nenhuma chave configurada'; el.style.color = 'var(--danger)'; }
+}
+
+// ── CONFIG TOGGLES ──
+function toggleConfig(key, btn) {
+  btn.classList.toggle('on');
+  state[key] = btn.classList.contains('on');
+  const prefs = JSON.parse(localStorage.getItem('triade_prefs') || '{}');
+  prefs[key] = state[key];
+  localStorage.setItem('triade_prefs', JSON.stringify(prefs));
+  if (key === 'audioResp') state.audioResp = state[key];
+}
+
+// ── PROMPTS ──
+const tipoInstrucoes = {
+  autoridade: 'conteúdo de autoridade posicionando Alexandre Amorim como referência em consultoria estratégica e IA. Tom: confiante, direto.',
+  educativo: 'conteúdo educativo que ensina algo valioso sobre gestão, estratégia ou IA. Seja prático e específico.',
+  venda: 'conteúdo de venda com CTA claro para consultoria da Tríade Resultados. Aborde a dor, mostre o resultado, chame para ação.',
+  prova: 'conteúdo de prova social simulando resultado real de cliente (clínica, restaurante ou loja) com crescimento após consultoria.',
+  bastidor: 'conteúdo de bastidores mostrando processo real de consultoria ou implementação de IA. Antes e depois.'
+};
+const plataformaInstrucoes = {
+  instagram: 'Legenda Instagram: gancho forte na 1ª linha, parágrafos curtos, CTA + hashtags. Máx 300 palavras.',
+  stories: 'Stories: 3 slides separados por "---". Máx 15 palavras por slide. Impacto imediato.',
+  carrossel: 'Carrossel: CAPA + 5 SLIDES + CTA. Formato: "CAPA: [título]", "SLIDE 1: [título] — [texto]".',
+  whatsapp: 'WhatsApp: direto, próximo, sem formalidade excessiva. Máx 150 palavras.',
+  youtube: 'YouTube: parágrafo-resumo + pontos do vídeo + CTA + links. 200 palavras.'
+};
+const publicoLabels = { clinicas: 'Clínicas', restaurantes: 'Restaurantes', lojas: 'Lojas físicas', servicos: 'Prestadores de serviço', geral: 'Empresários em geral' };
+const pilarLabels = { mentalidade: 'Mentalidade (clareza, foco)', estrategia: 'Estratégia (direção, plano)', execucao: 'Execução (ação, resultado)' };
+
+function buildPrompt(tema) {
+  return `Você é o criador de conteúdo da Tríade Resultados, consultoria de Alexandre Amorim em Itapetinga-BA e Vitória da Conquista-BA.
+
+MARCA: Consultoria estratégica com 3 pilares: mentalidade, estratégia, execução. Usa IA nos negócios locais.
+TOM: Direto, confiante, sem enrolação. Frases: "Três dimensões. Um resultado." / "Menos teoria, mais resultado."
+
+TAREFA: Crie ${tipoInstrucoes[state.tipo]}
+FORMATO: ${plataformaInstrucoes[state.plataforma]}
+PÚBLICO: ${publicoLabels[state.publico]}
+PILAR: ${pilarLabels[state.pilar]}
+${tema ? 'TEMA: ' + tema : ''}
+
+Escreva apenas o conteúdo final, sem explicações extras. Linguagem brasileira direta e regional.`;
+}
+
+// ── GERAR CONTEÚDO ──
+async function gerarConteudo() {
+  if (!state.apiKey) { showToast('Configure sua chave de API primeiro'); goPage('config'); return; }
+  const tema = document.getElementById('tema-input').value.trim();
+  const btn = document.getElementById('gerar-btn');
+  btn.disabled = true;
+  document.getElementById('resultado-wrap').style.display = 'block';
+  document.getElementById('res-loading').style.display = 'flex';
+  document.getElementById('res-text').textContent = '';
+  document.getElementById('audio-bar').style.display = 'none';
+  document.getElementById('variante-section').style.display = 'none';
+  document.getElementById('res-label').textContent = tipoToLabel() + ' · ' + plataformaToLabel();
+  setLoadingMsg('Gerando conteúdo...');
+
+  try {
+    const resp = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${state.apiKey}`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ contents: [{ parts: [{ text: buildPrompt(tema) }] }], generationConfig: { maxOutputTokens: 1000, temperature: 0.85 } })
+    });
+    const data = await resp.json();
+    if (data.error) throw new Error(data.error.message);
+    const texto = data.candidates?.[0]?.content?.parts?.[0]?.text || '';
+    state.ultimoTexto = texto;
+    document.getElementById('res-loading').style.display = 'none';
+    document.getElementById('res-text').textContent = texto;
+
+    if (state.hist) salvarHistorico(texto, tema);
+
+    if (state.respMode === 'audio' || state.respMode === 'ambos') lerEmVoz(texto);
+    if (state.respMode === 'texto' || state.respMode === 'ambos') { /* already shown */ }
+
+    if (state.variante && (state.tipo === 'venda' || state.tipo === 'autoridade')) gerarVariante(tema);
+
+  } catch(e) {
+    document.getElementById('res-loading').style.display = 'none';
+    document.getElementById('res-text').textContent = 'Erro: ' + (e.message || 'Falha na conexão.');
+  }
+  btn.disabled = false;
+}
+
+async function gerarVariante(tema) {
+  setLoadingMsg('Gerando variação...');
+  try {
+    const r2 = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${state.apiKey}`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ contents: [{ parts: [{ text: buildPrompt(tema) + '\n\nCrie UMA variação com gancho completamente diferente. Apenas o conteúdo.' }] }], generationConfig: { maxOutputTokens: 800, temperature: 0.9 } })
+    });
+    const d2 = await r2.json();
+    const var2 = d2.candidates?.[0]?.content?.parts?.[0]?.text || '';
+    state.ultimaVariante = var2;
+    document.getElementById('variante-text').textContent = var2;
+    document.getElementById('variante-section').style.display = 'block';
+  } catch(e) {}
+}
+
+function regerar() { gerarConteudo(); }
+
+function setLoadingMsg(msg) { document.getElementById('loading-msg').textContent = msg; }
+
+// ── ÁUDIO (TTS via Web Speech API) ──
+function lerEmVoz(texto) {
+  if (!('speechSynthesis' in window)) { showToast('TTS não suportado neste dispositivo'); return; }
+  window.speechSynthesis.cancel();
+  const utter = new SpeechSynthesisUtterance(texto.substring(0, 500));
+  utter.lang = 'pt-BR'; utter.rate = 0.95; utter.pitch = 1;
+  const voices = window.speechSynthesis.getVoices();
+  const ptVoice = voices.find(v => v.lang.startsWith('pt'));
+  if (ptVoice) utter.voice = ptVoice;
+  state.currentUtter = utter;
+  utter.onstart = () => { document.getElementById('audio-bar').style.display = 'flex'; document.getElementById('waveform').classList.add('playing'); state.audioPlaying = true; updatePlayBtn(); };
+  utter.onend = () => { document.getElementById('waveform').classList.remove('playing'); state.audioPlaying = false; updatePlayBtn(); };
+  window.speechSynthesis.speak(utter);
+}
+
+function toggleAudio() {
+  if (state.audioPlaying) { window.speechSynthesis.pause(); state.audioPlaying = false; document.getElementById('waveform').classList.remove('playing'); }
+  else if (window.speechSynthesis.paused) { window.speechSynthesis.resume(); state.audioPlaying = true; document.getElementById('waveform').classList.add('playing'); }
+  else if (state.ultimoTexto) { lerEmVoz(state.ultimoTexto); }
+  updatePlayBtn();
+}
+
+function updatePlayBtn() {
+  const btn = document.getElementById('play-btn');
+  if (state.audioPlaying) {
+    btn.innerHTML = '<svg viewBox="0 0 24 24" fill="#0f0f0f"><rect x="6" y="4" width="4" height="16"/><rect x="14" y="4" width="4" height="16"/></svg>';
+  } else {
+    btn.innerHTML = '<svg viewBox="0 0 24 24" fill="#0f0f0f"><polygon points="5 3 19 12 5 21 5 3"/></svg>';
+  }
+}
+
+// ── IMAGEM (Canvas local) ──
+function usarSugestao(btn) { document.getElementById('img-prompt').value = btn.dataset.v; }
+
+async function gerarImagem() {
+  const promptText = document.getElementById('img-prompt').value.trim();
+  if (!promptText) { showToast('Descreva a imagem primeiro'); return; }
+  const btn = document.getElementById('gerar-img-btn'); btn.disabled = true;
+  document.getElementById('img-result-wrap').style.display = 'block';
+  document.getElementById('img-loading').style.display = 'flex';
+  document.getElementById('img-generated').style.display = 'none';
+  document.getElementById('img-actions').style.display = 'none';
+
+  const dimensoes = { post: [1080, 1080], 'stories-img': [1080, 1920], capa: [1080, 566], banner: [1200, 630] };
+  const [w, h] = dimensoes[state.imgEstilo] || [1080, 1080];
+  const scale = 0.4;
+
+  setTimeout(() => {
+    const canvas = document.getElementById('img-canvas');
+    canvas.width = Math.round(w * scale);
+    canvas.height = Math.round(h * scale);
+    canvas.style.display = 'block';
+    canvas.style.width = '100%';
+    desenharImagem(canvas, promptText, w * scale, h * scale);
+    document.getElementById('img-loading').style.display = 'none';
+    document.getElementById('img-actions').style.display = 'flex';
+    btn.disabled = false;
+  }, 1200);
+}
+
+function desenharImagem(canvas, prompt, W, H) {
+  const ctx = canvas.getContext('2d');
+  const p = prompt.toLowerCase();
+
+  // Background
+  const grad = ctx.createLinearGradient(0, 0, W, H);
+  if (p.includes('crescimento') || p.includes('gráfico')) { grad.addColorStop(0, '#0a0a12'); grad.addColorStop(1, '#1a1a2e'); }
+  else if (p.includes('ia') || p.includes('tecnologia') || p.includes('digital')) { grad.addColorStop(0, '#060d14'); grad.addColorStop(1, '#0d1f2d'); }
+  else if (p.includes('tríade') || p.includes('triângulo')) { grad.addColorStop(0, '#0f0f0f'); grad.addColorStop(1, '#1a1008'); }
+  else { grad.addColorStop(0, '#0f0f0f'); grad.addColorStop(1, '#1c1c1c'); }
+  ctx.fillStyle = grad; ctx.fillRect(0, 0, W, H);
+
+  // Grid lines
+  ctx.strokeStyle = 'rgba(212,168,83,0.06)'; ctx.lineWidth = 0.5;
+  for (let x = 0; x < W; x += W / 8) { ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, H); ctx.stroke(); }
+  for (let y = 0; y < H; y += H / 8) { ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(W, y); ctx.stroke(); }
+
+  // Triangle shape
+  ctx.save();
+  ctx.translate(W * 0.5, H * 0.42);
+  const ts = Math.min(W, H) * 0.32;
+  ctx.beginPath();
+  ctx.moveTo(0, -ts); ctx.lineTo(ts * 0.87, ts * 0.5); ctx.lineTo(-ts * 0.87, ts * 0.5); ctx.closePath();
+  ctx.strokeStyle = 'rgba(212,168,83,0.7)'; ctx.lineWidth = 1.2; ctx.stroke();
+  ctx.strokeStyle = 'rgba(212,168,83,0.15)'; ctx.lineWidth = 8; ctx.stroke();
+  ctx.restore();
+
+  // Inner lines
+  ctx.save(); ctx.translate(W * 0.5, H * 0.42);
+  ctx.strokeStyle = 'rgba(212,168,83,0.3)'; ctx.lineWidth = 0.8;
+  ctx.beginPath(); ctx.moveTo(0, -ts * 0.35); ctx.lineTo(0, ts * 0.5); ctx.stroke();
+  ctx.restore();
+
+  // Dots at vertices
+  const verts = [[W * 0.5, H * 0.42 - ts], [W * 0.5 + ts * 0.87, H * 0.42 + ts * 0.5], [W * 0.5 - ts * 0.87, H * 0.42 + ts * 0.5]];
+  verts.forEach(([vx, vy]) => {
+    ctx.beginPath(); ctx.arc(vx, vy, 3, 0, Math.PI * 2);
+    ctx.fillStyle = 'rgba(212,168,83,0.9)'; ctx.fill();
+    ctx.beginPath(); ctx.arc(vx, vy, 7, 0, Math.PI * 2);
+    ctx.strokeStyle = 'rgba(212,168,83,0.2)'; ctx.lineWidth = 1; ctx.stroke();
+  });
+
+  // Brand name
+  ctx.fillStyle = 'rgba(240,237,232,0.9)';
+  ctx.font = `bold ${W * 0.042}px 'DM Serif Display', serif`;
+  ctx.textAlign = 'center';
+  ctx.fillText('TRÍADE RESULTADOS', W * 0.5, H * 0.82);
+
+  // Subtitle from prompt (truncated)
+  const words = prompt.split(' ').slice(0, 6).join(' ');
+  ctx.fillStyle = 'rgba(212,168,83,0.7)';
+  ctx.font = `${W * 0.026}px 'DM Sans', sans-serif`;
+  ctx.fillText(words.toUpperCase(), W * 0.5, H * 0.88);
+
+  // Top line accent
+  ctx.fillStyle = 'rgba(212,168,83,0.8)';
+  ctx.fillRect(W * 0.5 - W * 0.08, H * 0.1, W * 0.16, 1.5);
+  ctx.fillStyle = 'rgba(240,237,232,0.4)';
+  ctx.font = `${W * 0.022}px 'DM Sans', sans-serif`;
+  ctx.fillText('Alexandre Amorim · Consultoria Estratégica', W * 0.5, H * 0.15);
+
+  // Scan line effect
+  for (let y = 0; y < H; y += 4) {
+    ctx.fillStyle = 'rgba(0,0,0,0.04)';
+    ctx.fillRect(0, y, W, 1);
+  }
+
+  document.getElementById('img-generated').style.display = 'none';
+}
+
+function baixarImagem() {
+  const canvas = document.getElementById('img-canvas');
+  if (!canvas || canvas.style.display === 'none') return;
+  const link = document.createElement('a');
+  link.download = 'triade-' + Date.now() + '.png';
+  link.href = canvas.toDataURL('image/png');
+  link.click();
+  showToast('Imagem salva ✓');
+}
+
+async function compartilharImagem() {
+  const canvas = document.getElementById('img-canvas');
+  if (!canvas) return;
+  canvas.toBlob(async (blob) => {
+    if (navigator.share && blob) {
+      const file = new File([blob], 'triade.png', { type: 'image/png' });
+      try { await navigator.share({ files: [file], title: 'Tríade Resultados' }); }
+      catch(e) { baixarImagem(); }
+    } else { baixarImagem(); }
+  });
+}
+
+async function gerarTextoParaImagem() {
+  if (!state.apiKey) { showToast('Configure sua API Key primeiro'); return; }
+  const prompt = document.getElementById('img-prompt').value;
+  document.getElementById('tema-input').value = 'Baseado nessa imagem: ' + prompt;
+  goPage('gerar');
+  setTimeout(() => gerarConteudo(), 300);
+}
+
+// ── COMPARTILHAR / COPIAR ──
+function copiarTexto() {
+  if (!state.ultimoTexto) return;
+  navigator.clipboard.writeText(state.ultimoTexto).then(() => showToast('Copiado! ✓')).catch(() => {
+    const ta = document.createElement('textarea');
+    ta.value = state.ultimoTexto; document.body.appendChild(ta); ta.select();
+    document.execCommand('copy'); document.body.removeChild(ta); showToast('Copiado! ✓');
+  });
+}
+
+async function compartilhar() {
+  if (!state.ultimoTexto) return;
+  if (navigator.share) {
+    try { await navigator.share({ text: state.ultimoTexto, title: 'Tríade Resultados' }); }
+    catch(e) { copiarTexto(); }
+  } else { copiarTexto(); }
+}
+
+// ── VARIANTE ──
+function toggleVariante() {
+  const el = document.getElementById('variante-text');
+  const btn = document.querySelector('.variante-btn');
+  el.classList.toggle('open');
+  btn.textContent = el.classList.contains('open') ? '− Ocultar variação' : '+ Ver variação alternativa';
+}
+
+// ── HISTÓRICO ──
+function salvarHistorico(texto, tema) {
+  const item = { id: Date.now(), tipo: state.tipo, plataforma: state.plataforma, texto, tema, ts: new Date().toLocaleString('pt-BR', { hour: '2-digit', minute: '2-digit', day: '2-digit', month: '2-digit' }) };
+  state.historico.unshift(item);
+  if (state.historico.length > 50) state.historico.pop();
+  localStorage.setItem('triade_historico', JSON.stringify(state.historico));
+}
+
+function renderHistorico() {
+  const list = document.getElementById('historico-list');
+  if (!state.historico.length) { list.innerHTML = '<div style="text-align:center;padding:40px 20px;color:var(--text3);font-size:14px;">Nenhum conteúdo gerado ainda.<br><span style="font-size:12px;">Gere seu primeiro conteúdo na aba Gerar.</span></div>'; return; }
+  list.innerHTML = state.historico.map(item => `
+    <div class="hist-item" onclick="reusarHistorico('${item.id}')">
+      <div class="hist-meta">
+        <span class="hist-tag">${tipoLabels[item.tipo] || item.tipo}</span>
+        <span class="hist-tag" style="background:var(--surface3);color:var(--text3);">${item.plataforma}</span>
+        <span class="hist-time">${item.ts}</span>
+      </div>
+      <div class="hist-preview">${item.texto}</div>
+    </div>`).join('');
+}
+
+const tipoLabels = { autoridade: 'Autoridade', educativo: 'Educativo', venda: 'Venda', prova: 'Prova social', bastidor: 'Bastidores' };
+
+function reusarHistorico(id) {
+  const item = state.historico.find(h => h.id == id);
+  if (!item) return;
+  state.ultimoTexto = item.texto;
+  document.getElementById('resultado-wrap').style.display = 'block';
+  document.getElementById('res-text').textContent = item.texto;
+  document.getElementById('res-label').textContent = (tipoLabels[item.tipo] || item.tipo) + ' · ' + item.plataforma;
+  document.getElementById('res-loading').style.display = 'none';
+  goPage('gerar');
+  showToast('Conteúdo carregado ✓');
+}
+
+function limparHistorico() {
+  state.historico = [];
+  localStorage.removeItem('triade_historico');
+  renderHistorico();
+  showToast('Histórico limpo');
+}
+
+// ── HELPERS ──
+function tipoToLabel() { return tipoLabels[state.tipo] || state.tipo; }
+function plataformaToLabel() { const l = { instagram: 'Instagram', stories: 'Stories', carrossel: 'Carrossel', whatsapp: 'WhatsApp', youtube: 'YouTube' }; return l[state.plataforma] || state.plataforma; }
+
+function showToast(msg) {
+  const t = document.getElementById('toast'); t.textContent = msg; t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 2200);
+}
+
+// Load voices
+if ('speechSynthesis' in window) window.speechSynthesis.getVoices();
+</script>
+</body>
+</html>
